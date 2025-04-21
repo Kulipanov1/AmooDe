@@ -5,7 +5,9 @@
   "scripts": {
     "start": "expo start --tunnel",
     "start-web": "expo start --web --tunnel",
-    "start-web-dev": "DEBUG=expo* expo start --web --tunnel"
+    "start-web-dev": "DEBUG=expo* expo start --web --tunnel",
+    "build": "npx expo export:web",
+    "preview": "npx serve web-build"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
@@ -49,7 +51,8 @@
     "@babel/core": "^7.25.2",
     "@expo/ngrok": "^4.1.0",
     "@types/react": "~18.3.12",
-    "typescript": "~5.8.2"
+    "typescript": "~5.8.2",
+    "serve": "^14.2.1"
   },
   "private": true
 }
