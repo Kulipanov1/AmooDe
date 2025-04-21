@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amoo Dating App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    #app {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #FF6B6B;
+    }
+    .card {
+      background-color: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    .card-image {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+    }
+    .card-content {
+      padding: 16px;
+    }
+    .name {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .info {
+      color: #666;
+      margin-bottom: 12px;
+    }
+    .bio {
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+    .interests {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .interest-tag {
+      background-color: #f0f0f0;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 14px;
+    }
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px;
+    }
+    .button {
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+    }
+    .like-button {
+      color: #34C759;
+    }
+    .dislike-button {
+      color: #FF3B30;
+    }
+    .info-button {
+      color: #007AFF;
+      width: 44px;
+      height: 44px;
+    }
+    .navigation {
+      display: flex;
+      justify-content: space-around;
+      padding: 16px 0;
+      background-color: white;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .nav-item {
+      color: #8E8E93;
+      text-align: center;
+      font-size: 12px;
+    }
+    .nav-item.active {
+      color: #FF6B6B;
+    }
+    .icon {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+    .dark-theme {
+      background-color: #1C1C1E;
+      color: #FFFFFF;
+    }
+    .dark-theme .card {
+      background-color: #2C2C2E;
+    }
+    .dark-theme .interest-tag {
+      background-color: #3A3A3C;
+      color: #FFFFFF;
+    }
+    .dark-theme .navigation {
+      background-color: #2C2C2E;
+    }
+    .dark-theme .button {
+      background-color: #3A3A3C;
+    }
+    .dark-theme .nav-item {
+      color: #8E8E93;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="header">
+      <div class="logo">Amoo</div>
+    </div>
+    
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80" alt="Profile photo" class="card-image">
+      <div class="card-content">
+        <div class="name">Sophia, 28</div>
+        <div class="info">New York • 5 miles away</div>
+        <div class="bio">Coffee enthusiast, yoga lover, and adventure seeker. Let's explore the city together!</div>
+        <div class="interests">
+          <span class="interest-tag">Travel</span>
+          <span class="interest-tag">Yoga</span>
+          <span class="interest-tag">Photography</span>
+          <span class="interest-tag">Coffee</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="button dislike-button">✕</button>
+        <button class="button info-button">ℹ️</button>
+        <button class="button like-button">❤️</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="navigation">
+    <div class="nav-item active">
+      <div class="icon">❤️</div>
+      <div>Discover</div>
+    </div>
+    <div class="nav-item">
+      <div class="icon">💬</div>
+      <div>Matches</div>
+    </div>
+    <div class="nav-item">
+      <div class="icon">📹</div>
+      <div>Live</div>
+    </div>
+    <div class="nav-item">
+      <div class="icon">👤</div>
+      <div>Profile</div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize Telegram WebApp
+      const tg = window.Telegram.WebApp;
+      
+      // Tell Telegram we're ready
+      tg.ready();
+      
+      // Expand the WebApp
+      tg.expand();
+      
+      // Apply theme based on Telegram theme
+      if (tg.colorScheme === 'dark') {
+        document.body.classList.add('dark-theme');
+      }
+      
+      // Get user data
+      const user = tg.initDataUnsafe?.user;
+      if (user) {
+        console.log('Telegram user:', user);
+      }
+      
+      // Set up main button
+      tg.MainButton.setText('Open Amoo App');
+      tg.MainButton.onClick(function() {
+        // In a real app, this would navigate to the full app or perform an action
+        tg.showAlert('Opening Amoo Dating App...');
+      });
+      
+      // Show the main button
+      tg.MainButton.show();
+      
+      // Handle like button
+      document.querySelector('.like-button').addEventListener('click', function() {
+        tg.HapticFeedback.notificationOccurred('success');
+        tg.showAlert('You liked Sophia!');
+        
+        // In a real app, this would call your API to record the like
+      });
+      
+      // Handle dislike button
+      document.querySelector('.dislike-button').addEventListener('click', function() {
+        tg.HapticFeedback.notificationOccurred('warning');
+        tg.showAlert('You passed on Sophia.');
+        
+        // In a real app, this would call your API to record the dislike
+      });
+      
+      // Handle info button
+      document.querySelector('.info-button').addEventListener('click', function() {
+        tg.HapticFeedback.selectionChanged();
+        
+        // In a real app, this would show more profile details
+        tg.showAlert('View Sophia\'s full profile');
+      });
+      
+      // Handle navigation items
+      document.querySelectorAll('.nav-item').forEach(function(item) {
+        item.addEventListener('click', function() {
+          document.querySelectorAll('.nav-item').forEach(function(navItem) {
+            navItem.classList.remove('active');
+          });
+          this.classList.add('active');
+          
+          // In a real app, this would change the view
+          const section = this.querySelector('div:last-child').textContent;
+          tg.HapticFeedback.selectionChanged();
+          
+          // Show different content based on section
+          if (section === 'Matches') {
+            tg.showAlert('Viewing your matches');
+          } else if (section === 'Live') {
+            tg.showAlert('Live streams coming soon!');
+          } else if (section === 'Profile') {
+            tg.showAlert('Viewing your profile');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

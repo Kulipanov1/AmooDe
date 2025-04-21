@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dating Bot Web App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div id="profile-section" class="hidden">
+            <h2>Ваш профиль</h2>
+            <div id="profile-info"></div>
+            <button id="edit-profile">✏️ Редактировать</button>
+        </div>
+        
+        <div id="search-section">
+            <h2>Поиск людей</h2>
+            <div id="profile-card" class="hidden">
+                <img id="profile-photo" src="" alt="Фото профиля">
+                <h3 id="profile-name"></h3>
+                <p id="profile-age"></p>
+                <p id="profile-bio"></p>
+                <div class="buttons">
+                    <button id="dislike">👎</button>
+                    <button id="like">❤️</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="matches-section" class="hidden">
+            <h2>Ваши пары</h2>
+            <div id="matches-list"></div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html> 
