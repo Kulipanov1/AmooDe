@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 import sqlite3
 import os
@@ -17,7 +17,7 @@ def get_db_connection():
 # Serve static files from the public directory
 @app.route('/')
 def index():
-    return send_from_directory('public', 'index.html')
+    return render_template('index.html')
 
 @app.route('/<path:path>')
 def serve_static(path):
@@ -79,14 +79,10 @@ def get_matches(user_id):
     conn = get_db_connection()
     matches = conn.execute('''
         SELECT p.* FROM profiles p
-        JOIN matches m ON p.user_id = m.user2_id
-        WHERE m.user1_id = ? AND m.status = 'like'
-        AND EXISTS (
-            SELECT 1 FROM matches m2
-            WHERE m2.user1_id = p.user_id
-            AND m2.user2_id = ?
-            AND m2.status = 'like'
-        )
+        INNER JOIN matches m1 ON p.user_id = m1.user2_id
+        INNER JOIN matches m2 ON m1.user2_id = m2.user1_id
+        WHERE m1.user1_id = ? AND m2.user2_id = ?
+        AND m1.status = 'like' AND m2.status = 'like'
     ''', (user_id, user_id)).fetchall()
     conn.close()
     
@@ -121,6 +117,21 @@ def get_photo(photo_id):
     # Здесь должна быть логика получения фото из Telegram
     # В реальном приложении нужно использовать Telegram Bot API
     return jsonify({'error': 'Photo not available'}), 404
+
+@app.route('/api/messages/<int:user_id>', methods=['GET'])
+def get_messages(user_id):
+    """Получение сообщений пользователя"""
+    conn = get_db_connection()
+    messages = conn.execute('''
+        SELECT m.*, p.name as sender_name 
+        FROM messages m
+        JOIN profiles p ON m.sender_id = p.user_id
+        WHERE m.receiver_id = ?
+        ORDER BY m.timestamp DESC
+    ''', (user_id,)).fetchall()
+    conn.close()
+    
+    return jsonify([dict(message) for message in messages])
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
