@@ -1,10 +1,15 @@
 from flask import Flask, request, jsonify, send_from_directory
+from dotenv import load_dotenv
 import sqlite3
 import os
+
+# Загружаем переменные окружения
+load_dotenv()
 
 app = Flask(__name__)
 
 def get_db_connection():
+    """Создаем подключение к базе данных"""
     conn = sqlite3.connect('dating_bot.db')
     conn.row_factory = sqlite3.Row
     return conn
@@ -19,22 +24,21 @@ def serve_static(path):
     return send_from_directory('public', path)
 
 # API endpoints
-@app.route('/api/profile', methods=['POST'])
-def get_profile():
-    data = request.json
-    user_id = data.get('user_id')
-    
+@app.route('/api/profile/<int:user_id>', methods=['GET'])
+def get_profile(user_id):
+    """Получение профиля пользователя"""
     conn = get_db_connection()
     profile = conn.execute('SELECT * FROM profiles WHERE user_id = ?', (user_id,)).fetchone()
     conn.close()
     
     if profile:
         return jsonify({
+            'user_id': profile['user_id'],
             'name': profile['name'],
-            'age': profile['age'],
             'bio': profile['bio'],
-            'photo_url': f'/api/photo/{profile["photo_id"]}',
+            'age': profile['age'],
             'gender': profile['gender'],
+            'photo_id': profile['photo_id'],
             'search_gender': profile['search_gender']
         })
     return jsonify({'error': 'Profile not found'}), 404
@@ -69,11 +73,9 @@ def get_next_profile():
         })
     return jsonify({'error': 'No more profiles'}), 404
 
-@app.route('/api/matches', methods=['POST'])
-def get_matches():
-    data = request.json
-    user_id = data.get('user_id')
-    
+@app.route('/api/matches/<int:user_id>', methods=['GET'])
+def get_matches(user_id):
+    """Получение списка мэтчей пользователя"""
     conn = get_db_connection()
     matches = conn.execute('''
         SELECT p.* FROM profiles p
@@ -88,14 +90,31 @@ def get_matches():
     ''', (user_id, user_id)).fetchall()
     conn.close()
     
-    return jsonify([{
-        'user_id': match['user_id'],
-        'name': match['name'],
-        'age': match['age'],
-        'bio': match['bio'],
-        'photo_url': f'/api/photo/{match["photo_id"]}',
-        'gender': match['gender']
-    } for match in matches])
+    return jsonify([dict(match) for match in matches])
+
+@app.route('/api/match', methods=['POST'])
+def create_match():
+    """Создание нового мэтча"""
+    data = request.json
+    user1_id = data.get('user1_id')
+    user2_id = data.get('user2_id')
+    status = data.get('status')
+    
+    if not all([user1_id, user2_id, status]):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    conn = get_db_connection()
+    try:
+        conn.execute(
+            'INSERT INTO matches (user1_id, user2_id, status) VALUES (?, ?, ?)',
+            (user1_id, user2_id, status)
+        )
+        conn.commit()
+        return jsonify({'message': 'Match created successfully'})
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Match already exists'}), 409
+    finally:
+        conn.close()
 
 @app.route('/api/photo/<photo_id>')
 def get_photo(photo_id):
@@ -104,4 +123,5 @@ def get_photo(photo_id):
     return jsonify({'error': 'Photo not available'}), 404
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000) 
+    port = int(os.getenv('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True) 
