@@ -5,17 +5,18 @@ tg.expand();
 // Инициализация состояния приложения
 let currentSection = 'profile';
 let currentChatPartner = null;
+let currentProfile = null;
 
 // Получение элементов DOM
 const sections = {
     profile: document.getElementById('profile-section'),
+    search: document.getElementById('search-section'),
     matches: document.getElementById('matches-section'),
     messages: document.getElementById('messages-section')
 };
 
 // Получение данных пользователя
 const user = tg.initDataUnsafe.user;
-let currentProfile = null;
 
 // Элементы интерфейса
 const profileSection = document.getElementById('profile-section');
@@ -36,11 +37,11 @@ async function fetchProfile() {
         if (response.ok) {
             displayProfile(data);
         } else {
-            showError('Ошибка загрузки профиля');
+            showNotification('Ошибка загрузки профиля', 'error');
         }
     } catch (error) {
         console.error('Error:', error);
-        showError('Ошибка сервера');
+        showNotification('Ошибка сервера', 'error');
     }
 }
 
@@ -61,12 +62,12 @@ async function loadNextProfile() {
             currentProfile = data;
             displayProfileCard(data);
         } else {
-            profileCard.classList.add('hidden');
-            showError('Нет доступных профилей');
+            document.getElementById('profile-card').classList.add('hidden');
+            showNotification('Нет доступных профилей', 'error');
         }
     } catch (error) {
         console.error('Error:', error);
-        showError('Ошибка загрузки профиля');
+        showNotification('Ошибка загрузки профиля', 'error');
     }
 }
 
@@ -102,51 +103,57 @@ async function fetchMessages(chatPartnerId) {
 
 // Функции отображения
 function displayProfile(profile) {
+    const profileInfo = document.getElementById('profile-info');
     profileInfo.innerHTML = `
         <div class="profile-header">
             <img src="${profile.photo_url || 'default-avatar.png'}" alt="Фото профиля" class="profile-photo">
-            <h3>${profile.name}, ${profile.age}</h3>
+            <div class="profile-text">
+                <h3>${profile.name}, ${profile.age}</h3>
+                <p>${profile.gender}</p>
+            </div>
         </div>
         <div class="profile-details">
             <p><strong>О себе:</strong> ${profile.bio}</p>
-            <p><strong>Пол:</strong> ${profile.gender}</p>
             <p><strong>Ищу:</strong> ${profile.search_gender}</p>
         </div>
     `;
 }
 
 function displayProfileCard(profile) {
-    profileCard.classList.remove('hidden');
+    const card = document.getElementById('profile-card');
+    card.classList.remove('hidden');
+    
     document.getElementById('profile-photo').src = profile.photo_url || 'default-avatar.png';
     document.getElementById('profile-name').textContent = profile.name;
     document.getElementById('profile-age').textContent = `${profile.age} лет`;
-    document.getElementById('profile-bio').textContent = profile.bio;
+    document.getElementById('profile-bio').textContent = profile.bio || '';
 }
 
 function displayMatches(matches) {
-    if (matches.length === 0) {
-        matchesList.innerHTML = '<p>У вас пока нет пар</p>';
+    const matchesList = document.getElementById('matches-list');
+    
+    if (!matches || matches.length === 0) {
+        matchesList.innerHTML = '<p class="no-matches">У вас пока нет пар</p>';
         return;
     }
 
     matchesList.innerHTML = matches.map(match => `
         <div class="match-card">
-            <img src="${match.photo_url || 'default-avatar.png'}" alt="Фото" class="match-photo">
+            <img src="${match.photo_url || 'default-avatar.png'}" alt="${match.name}" class="match-photo">
             <div class="match-info">
-                <h4>${match.name}, ${match.age}</h4>
-                <p>${match.bio}</p>
-                <button onclick="startChat(${match.user_id})">Написать</button>
+                <h3>${match.name}, ${match.age}</h3>
+                <p>${match.bio || ''}</p>
             </div>
+            <button onclick="startChat(${match.user_id})" class="chat-button">💬</button>
         </div>
     `).join('');
 }
 
 function displayMessages(messages) {
     const messagesContainer = document.getElementById('messages');
-    if (!messagesContainer) return;
-
-    if (messages.length === 0) {
-        messagesContainer.innerHTML = '<p>Нет сообщений</p>';
+    
+    if (!messages || messages.length === 0) {
+        messagesContainer.innerHTML = '<p class="no-messages">Нет сообщений</p>';
         return;
     }
 
@@ -154,13 +161,38 @@ function displayMessages(messages) {
         <div class="message ${msg.sender_id === user.id ? 'sent' : 'received'}">
             <div class="message-content">
                 <p class="message-text">${msg.text}</p>
-                <span class="message-time">${new Date(msg.timestamp).toLocaleTimeString()}</span>
+                <span class="message-time">${formatTime(msg.timestamp)}</span>
             </div>
         </div>
     `).join('');
     
-    // Прокрутка к последнему сообщению
+    scrollToBottom();
+}
+
+// Вспомогательные функции
+function showNotification(message, type = 'error') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}-message`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+function formatTime(timestamp) {
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function scrollToBottom() {
+    const messagesContainer = document.getElementById('messages');
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Функция для отправки данных в Telegram
+function sendData(action, data = {}) {
+    tg.sendData(JSON.stringify({
+        action: action,
+        ...data
+    }));
 }
 
 // Обработчики событий
@@ -179,41 +211,26 @@ document.getElementById('back-to-matches').addEventListener('click', () => {
 
 if (messageInput) {
     messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
             sendMessage();
         }
     });
 }
 
-// Вспомогательные функции
-function showError(message) {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-message';
-    errorDiv.textContent = message;
-    document.body.appendChild(errorDiv);
-    setTimeout(() => errorDiv.remove(), 3000);
-}
-
-// Функция для отправки данных в Telegram
-function sendData(action, data = {}) {
-    tg.sendData(JSON.stringify({
-        action: action,
-        ...data
-    }));
-}
-
-// Обработка действий лайк/дизлайк
+// Основные функции
 function handleAction(action) {
+    if (!currentProfile) return;
+    
     sendData(action);
+    loadNextProfile();
 }
 
-// Показ списка пар
 function showMatches() {
     showSection('matches');
     sendData('show_matches');
 }
 
-// Начало чата
 function startChat(userId) {
     currentChatPartner = userId;
     showSection('messages');
@@ -221,7 +238,6 @@ function startChat(userId) {
     document.getElementById('messages').innerHTML = '';
 }
 
-// Отправка сообщения
 function sendMessage() {
     const text = messageInput.value.trim();
     
@@ -239,29 +255,29 @@ function sendMessage() {
     }
 }
 
-// Создание элемента сообщения
 function createMessageElement(text, isSent) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
-    messageDiv.textContent = text;
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            <p class="message-text">${text}</p>
+            <span class="message-time">${formatTime(new Date())}</span>
+        </div>
+    `;
     return messageDiv;
-}
-
-// Прокрутка чата вниз
-function scrollToBottom() {
-    const messagesContainer = document.getElementById('messages');
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
 // Переключение между разделами
 function showSection(sectionName) {
     Object.entries(sections).forEach(([name, element]) => {
-        element.classList.toggle('hidden', name !== sectionName);
+        if (element) {
+            element.classList.toggle('hidden', name !== sectionName);
+        }
     });
     currentSection = sectionName;
 }
 
-// Обработка входящих сообщений
+// Обработчики входящих данных
 function handleIncomingMessage(data) {
     if (currentSection === 'messages' && currentChatPartner === data.sender_id) {
         const messageElement = createMessageElement(data.text, false);
@@ -270,35 +286,17 @@ function handleIncomingMessage(data) {
     }
 }
 
-// Обработка обновления профиля
 function updateProfile(data) {
-    document.getElementById('profile-photo').src = data.photo_url;
-    document.getElementById('profile-name').textContent = data.name;
-    document.getElementById('profile-age').textContent = data.age;
-    document.getElementById('profile-bio').textContent = data.bio;
+    displayProfile(data);
 }
 
-// Обработка обновления списка пар
 function updateMatches(matches) {
-    const matchesList = document.getElementById('matches-list');
-    matchesList.innerHTML = '';
-    
-    matches.forEach(match => {
-        const matchCard = document.createElement('div');
-        matchCard.className = 'match-card';
-        matchCard.innerHTML = `
-            <img src="${match.photo_url}" alt="${match.name}" class="match-photo">
-            <div class="match-info">
-                <h3>${match.name}, ${match.age}</h3>
-                <p>${match.bio}</p>
-            </div>
-            <button onclick="startChat(${match.user_id})">Чат</button>
-        `;
-        matchesList.appendChild(matchCard);
-    });
+    displayMatches(matches);
 }
 
 // Инициализация приложения
 window.addEventListener('load', () => {
     showSection('profile');
+    fetchProfile();
+    loadNextProfile();
 }); 

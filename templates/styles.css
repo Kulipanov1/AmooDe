@@ -5,6 +5,9 @@
     --tg-theme-link-color: #2481cc;
     --tg-theme-button-color: #40a7e3;
     --tg-theme-button-text-color: #fff;
+    --error-color: #ff4444;
+    --success-color: #4CAF50;
+    --border-color: #ddd;
 }
 
 * {
@@ -27,6 +30,28 @@ body {
     margin: 0 auto;
 }
 
+/* Секции */
+section {
+    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+h2 {
+    font-size: 24px;
+    margin: 0;
+    flex-grow: 1;
+}
+
 /* Профиль */
 .profile-header {
     display: flex;
@@ -40,6 +65,7 @@ body {
     border-radius: 50%;
     object-fit: cover;
     margin-right: 16px;
+    border: 3px solid var(--tg-theme-button-color);
 }
 
 .profile-details {
@@ -51,10 +77,16 @@ body {
 
 /* Карточка профиля */
 #profile-card {
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#profile-card.hidden {
+    display: none;
 }
 
 #profile-photo {
@@ -63,10 +95,13 @@ body {
     height: auto;
     border-radius: 8px;
     margin-bottom: 15px;
+    display: block;
+    margin: 0 auto 15px;
 }
 
 .content {
     margin-bottom: 20px;
+    text-align: center;
 }
 
 .buttons {
@@ -75,6 +110,7 @@ body {
     gap: 20px;
 }
 
+/* Кнопки */
 button {
     background-color: var(--tg-theme-button-color);
     color: var(--tg-theme-button-text-color);
@@ -83,21 +119,59 @@ button {
     border-radius: 8px;
     cursor: pointer;
     font-size: 16px;
-    transition: opacity 0.2s;
+    transition: all 0.2s ease;
 }
 
 button:hover {
     opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+.action-button {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    font-size: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#like-button {
+    background-color: #ff4d4d;
+}
+
+#dislike-button {
+    background-color: #666666;
+}
+
+.nav-button {
+    background-color: transparent;
+    color: var(--tg-theme-button-color);
+    border: 1px solid var(--tg-theme-button-color);
 }
 
 /* Пары */
 .match-card {
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
     padding: 15px;
     display: flex;
     align-items: center;
     gap: 15px;
+    margin-bottom: 15px;
+    background: white;
+    transition: transform 0.2s ease;
+}
+
+.match-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .match-photo {
@@ -105,6 +179,7 @@ button:hover {
     height: 60px;
     border-radius: 50%;
     object-fit: cover;
+    border: 2px solid var(--tg-theme-button-color);
 }
 
 .match-info {
@@ -116,6 +191,7 @@ button:hover {
     display: flex;
     flex-direction: column;
     height: calc(100vh - 100px);
+    padding: 0;
 }
 
 #messages {
@@ -129,20 +205,23 @@ button:hover {
 
 .message {
     max-width: 80%;
-    padding: 10px 15px;
-    border-radius: 12px;
+    padding: 12px 16px;
+    border-radius: 16px;
     margin-bottom: 5px;
+    word-wrap: break-word;
 }
 
 .message.sent {
     background-color: var(--tg-theme-button-color);
     color: var(--tg-theme-button-text-color);
     align-self: flex-end;
+    border-bottom-right-radius: 4px;
 }
 
 .message.received {
     background-color: #f0f0f0;
     align-self: flex-start;
+    border-bottom-left-radius: 4px;
 }
 
 .message-input {
@@ -150,35 +229,56 @@ button:hover {
     gap: 10px;
     padding: 15px;
     background-color: var(--tg-theme-bg-color);
-    border-top: 1px solid #ddd;
+    border-top: 1px solid var(--border-color);
 }
 
 #message-text {
     flex-grow: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
     font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+#message-text:focus {
+    border-color: var(--tg-theme-button-color);
 }
 
 #send-message {
-    padding: 10px 15px;
+    padding: 10px;
     font-size: 20px;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Ошибки */
-.error-message {
+/* Уведомления */
+.notification {
     position: fixed;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: #ff4444;
-    color: white;
     padding: 12px 24px;
     border-radius: 8px;
+    color: white;
     animation: fadeIn 0.3s ease-in-out;
+    z-index: 1000;
 }
 
+.error-message {
+    background: var(--error-color);
+}
+
+.success-message {
+    background: var(--success-color);
+}
+
+/* Анимации */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -190,43 +290,6 @@ button:hover {
     }
 }
 
-.hidden {
-    display: none;
-}
-
-/* Успешные уведомления */
-.success-message {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #4CAF50;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-/* Кнопки действий */
-#like {
-    background: #ff4d4d;
-}
-
-#dislike {
-    background: #666666;
-}
-
-/* Секции */
-section {
-    margin-bottom: 30px;
-}
-
-h2 {
-    font-size: 24px;
-    margin-bottom: 20px;
-}
-
-/* Анимации */
 @keyframes slideIn {
     from {
         transform: translateX(100%);
@@ -238,6 +301,6 @@ h2 {
     }
 }
 
-.profile-card {
-    animation: slideIn 0.3s ease-out;
+.hidden {
+    display: none !important;
 } 

@@ -9,12 +9,14 @@
 </head>
 <body>
     <div class="container">
+        <!-- Секция профиля -->
         <section id="profile-section">
             <h2>Ваш профиль</h2>
             <div id="profile-info"></div>
             <button id="edit-profile">✏️ Редактировать</button>
         </section>
         
+        <!-- Секция поиска -->
         <section id="search-section">
             <h2>Поиск людей</h2>
             <div id="profile-card" class="hidden">
@@ -25,19 +27,27 @@
                     <p id="profile-bio"></p>
                 </div>
                 <div class="buttons">
-                    <button id="dislike">👎</button>
-                    <button id="like">❤️</button>
+                    <button id="dislike-button" class="action-button">👎</button>
+                    <button id="like-button" class="action-button">❤️</button>
                 </div>
             </div>
+            <button id="matches-button" class="nav-button">Показать пары</button>
         </section>
         
-        <section id="matches-section">
-            <h2>Ваши пары</h2>
+        <!-- Секция пар -->
+        <section id="matches-section" class="hidden">
+            <div class="section-header">
+                <h2>Ваши пары</h2>
+            </div>
             <div id="matches-list"></div>
         </section>
 
+        <!-- Секция сообщений -->
         <section id="messages-section" class="hidden">
-            <h2>Сообщения</h2>
+            <div class="section-header">
+                <button id="back-to-matches" class="nav-button">← Назад</button>
+                <h2>Сообщения</h2>
+            </div>
             <div id="messages"></div>
             <div class="message-input">
                 <input type="text" id="message-text" placeholder="Введите сообщение...">
