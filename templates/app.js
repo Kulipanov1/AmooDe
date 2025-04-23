@@ -442,3 +442,171 @@ function appendMessage(message, isSent) {
     elements.messages.container.appendChild(messageElement);
     elements.messages.container.scrollTop = elements.messages.container.scrollHeight;
 }
+
+// Управление страницами
+const pages = ['cards', 'profile', 'live', 'likes', 'matches'];
+let currentPage = 'cards';
+
+function showPage(pageId) {
+    // Скрыть все страницы
+    pages.forEach(page => {
+        document.getElementById(`${page}-page`).classList.remove('active');
+        document.querySelector(`[data-page="${page}"]`).classList.remove('active');
+    });
+    
+    // Показать выбранную страницу
+    document.getElementById(`${pageId}-page`).classList.add('active');
+    document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+    currentPage = pageId;
+}
+
+// Инициализация навигации
+document.addEventListener('DOMContentLoaded', () => {
+    // Настройка обработчиков для навигации
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const pageId = item.getAttribute('data-page');
+            showPage(pageId);
+        });
+    });
+
+    // Показать начальную страницу
+    showPage('cards');
+});
+
+// Управление карточками
+let currentCardIndex = 0;
+const cards = []; // Здесь будут храниться данные карточек
+
+function showNextCard() {
+    if (currentCardIndex >= cards.length - 1) {
+        // Загрузить новые карточки
+        loadMoreCards();
+        return;
+    }
+    
+    currentCardIndex++;
+    updateCardDisplay();
+}
+
+function handleLike() {
+    const currentCard = cards[currentCardIndex];
+    // Отправить лайк на сервер
+    fetch('/api/like', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            userId: currentCard.userId,
+            action: 'like'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.isMatch) {
+            showMatch(currentCard);
+        }
+        showNextCard();
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function handleDislike() {
+    const currentCard = cards[currentCardIndex];
+    // Отправить дизлайк на сервер
+    fetch('/api/like', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            userId: currentCard.userId,
+            action: 'dislike'
+        })
+    })
+    .then(() => showNextCard())
+    .catch(error => console.error('Error:', error));
+}
+
+function handleSuperlike() {
+    const currentCard = cards[currentCardIndex];
+    // Отправить суперлайк на сервер
+    fetch('/api/like', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            userId: currentCard.userId,
+            action: 'superlike'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.isMatch) {
+            showMatch(currentCard);
+        }
+        showNextCard();
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function showMatch(matchedUser) {
+    // Показать уведомление о метче
+    const matchNotification = document.createElement('div');
+    matchNotification.classList.add('match-notification');
+    matchNotification.innerHTML = `
+        <h3>Это взаимно!</h3>
+        <p>Вы понравились ${matchedUser.name}</p>
+        <button onclick="startChat(${matchedUser.userId})">Начать общение</button>
+    `;
+    document.body.appendChild(matchNotification);
+    
+    setTimeout(() => {
+        matchNotification.remove();
+    }, 5000);
+}
+
+function startChat(userId) {
+    // Переключиться на страницу чатов и открыть чат с пользователем
+    showPage('matches');
+    // TODO: Открыть чат с конкретным пользователем
+}
+
+function loadMoreCards() {
+    fetch('/api/cards')
+        .then(response => response.json())
+        .then(data => {
+            cards.push(...data);
+            currentCardIndex = 0;
+            updateCardDisplay();
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function updateCardDisplay() {
+    const currentCard = cards[currentCardIndex];
+    if (!currentCard) return;
+    
+    const cardElement = document.querySelector('.profile-card');
+    cardElement.innerHTML = `
+        <div class="photo-container">
+            <img src="${currentCard.photo}" alt="${currentCard.name}">
+            <div class="profile-info-overlay">
+                <h3>${currentCard.name}, ${currentCard.age}</h3>
+                <p>${currentCard.bio}</p>
+            </div>
+        </div>
+    `;
+}
+
+// Инициализация карточек при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    loadMoreCards();
+    
+    // Настройка обработчиков для кнопок действий
+    document.getElementById('like-button').addEventListener('click', handleLike);
+    document.getElementById('dislike-button').addEventListener('click', handleDislike);
+    document.getElementById('superlike-button').addEventListener('click', handleSuperlike);
+});

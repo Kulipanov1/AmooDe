@@ -1,242 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amoo - Приложение для знакомств</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Shams Dating</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Секция профиля -->
-        <section id="profile-section">
-            <div class="profile-header">
-                <div class="profile-main">
-                    <img src="default-avatar.png" alt="Фото профиля" class="profile-photo" id="user-photo">
-                    <div class="profile-text">
-                        <h3><span id="user-name">Александр Петров</span> <i class="fas fa-star-of-life verified-icon"></i></h3>
-                        <p class="profile-status">Ищу интересные знакомства</p>
-                        <button id="edit-profile" class="edit-button">
-                            Редактировать профиль
-                        </button>
-                    </div>
+    <div class="app-container">
+        <!-- Страница с карточками -->
+        <div id="cards-page" class="page active">
+            <div class="card-stack">
+                <div class="profile-card">
+                    <!-- Карточки будут добавляться динамически -->
                 </div>
             </div>
-
-            <div class="profile-stats">
-                <div class="stat-item">
-                    <span class="stat-value">1.2K</span>
-                    <span class="stat-label">Подписчики</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value">567</span>
-                    <span class="stat-label">Подписки</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="likes-count">890</span>
-                    <span class="stat-label">Лайки</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="matches-count">123</span>
-                    <span class="stat-label">Совпадения</span>
-                </div>
-            </div>
-
-            <div class="interests-section">
-                <h3>Интересы</h3>
-                <div class="interests-grid">
-                    <div class="interest-tag">Путешествия</div>
-                    <div class="interest-tag">Спорт</div>
-                    <div class="interest-tag">Музыка</div>
-                    <div class="interest-tag">Кино</div>
-                    <div class="interest-tag">Искусство</div>
-                </div>
-            </div>
-
-            <div class="photos-section">
-                <h3>Фотографии</h3>
-                <div class="photos-grid">
-                    <div class="photo-item">
-                        <img src="photo1.jpg" alt="Фото 1">
-                    </div>
-                    <div class="photo-item">
-                        <img src="photo2.jpg" alt="Фото 2">
-                    </div>
-                    <div class="photo-item">
-                        <img src="photo3.jpg" alt="Фото 3">
-                    </div>
-                </div>
-            </div>
-
-            <div class="achievements-section">
-                <h3>Достижения</h3>
-                <div class="achievement-item">
-                    <div class="achievement-icon">
-                        <i class="fas fa-crown"></i>
-                    </div>
-                    <div class="achievement-info">
-                        <h4>Популярный профиль</h4>
-                        <p>Более 1000 лайков</p>
-                    </div>
-                </div>
-                <div class="achievement-item">
-                    <div class="achievement-icon">
-                        <i class="fas fa-heart"></i>
-                    </div>
-                    <div class="achievement-info">
-                        <h4>Успешный матч</h4>
-                        <p>100 взаимных симпатий</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Секция поиска -->
-        <section id="search-section">
-            <div class="section-header">
-                <h2>Поиск</h2>
-                <button id="filter-button" class="icon-button">
-                    <i class="fas fa-sliders-h"></i>
+            <div class="action-buttons">
+                <button id="dislike-button" class="action-button dislike">
+                    <span class="icon">✕</span>
                 </button>
-            </div>
-            
-            <div id="search-filters" class="hidden">
-                <div class="filter-group">
-                    <label>Возраст:</label>
-                    <div class="range-slider">
-                        <input type="range" id="age-min" min="18" max="80" value="18">
-                        <input type="range" id="age-max" min="18" max="80" value="50">
-                        <div class="range-values">
-                            <span id="age-min-value">18</span> - <span id="age-max-value">50</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <label>Пол:</label>
-                    <div class="gender-buttons">
-                        <button class="gender-button active" data-gender="female">
-                            <i class="fas fa-venus"></i> Женский
-                        </button>
-                        <button class="gender-button" data-gender="male">
-                            <i class="fas fa-mars"></i> Мужской
-                        </button>
-                        <button class="gender-button" data-gender="all">
-                            <i class="fas fa-venus-mars"></i> Все
-                        </button>
-                    </div>
-                </div>
-                <div class="filter-group">
-                    <label>Интересы:</label>
-                    <div class="interests-filter">
-                        <div class="interest-tag selectable">Путешествия</div>
-                        <div class="interest-tag selectable">Спорт</div>
-                        <div class="interest-tag selectable">Музыка</div>
-                        <div class="interest-tag selectable">Кино</div>
-                        <div class="interest-tag selectable">Искусство</div>
-                    </div>
-                </div>
-                <button id="apply-filters" class="primary-button">Применить</button>
-            </div>
-
-            <div id="profile-card" class="profile-card">
-                <div class="photo-container">
-                    <img id="profile-photo" src="" alt="Фото профиля">
-                    <div class="profile-info-overlay">
-                        <h3><span id="profile-name"></span>, <span id="profile-age"></span></h3>
-                        <p id="profile-bio"></p>
-                        <div class="profile-interests">
-                            <div class="interest-tag">Путешествия</div>
-                            <div class="interest-tag">Музыка</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="action-buttons">
-                    <button id="dislike-button" class="action-button">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <button id="superlike-button" class="action-button">
-                        <i class="fas fa-star"></i>
-                    </button>
-                    <button id="like-button" class="action-button">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Секция пар -->
-        <section id="matches-section" class="hidden">
-            <div class="section-header">
-                <button class="back-button">
-                    <i class="fas fa-arrow-left"></i>
+                <button id="superlike-button" class="action-button superlike">
+                    <span class="icon">⭐</span>
                 </button>
-                <h2>Ваши пары</h2>
-            </div>
-            <div class="matches-tabs">
-                <button class="tab-button active" data-tab="new">
-                    <i class="fas fa-sparkles"></i> Новые
-                    <span class="badge">3</span>
-                </button>
-                <button class="tab-button" data-tab="all">
-                    <i class="fas fa-users"></i> Все
-                </button>
-            </div>
-            <div id="matches-list"></div>
-        </section>
-
-        <!-- Секция сообщений -->
-        <section id="messages-section" class="hidden">
-            <div class="section-header">
-                <button id="back-to-matches" class="back-button">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
-                <div class="chat-header">
-                    <img id="chat-partner-photo" src="" alt="Фото собеседника" class="chat-photo">
-                    <div class="chat-info">
-                        <h3 id="chat-partner-name"></h3>
-                        <span id="chat-status" class="online">онлайн</span>
-                    </div>
-                </div>
-                <button class="icon-button">
-                    <i class="fas fa-ellipsis-v"></i>
-                </button>
-            </div>
-            <div id="messages"></div>
-            <div class="message-input">
-                <button id="attach-button" class="icon-button">
-                    <i class="fas fa-paperclip"></i>
-                </button>
-                <input type="text" id="message-text" placeholder="Введите сообщение...">
-                <button id="send-message" class="icon-button">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </section>
-    </div>
-
-    <!-- Модальные окна -->
-    <div id="match-modal" class="modal hidden">
-        <div class="modal-content match-content">
-            <div class="match-photos">
-                <img src="" alt="Ваше фото" class="match-photo your-photo">
-                <div class="match-heart">
-                    <i class="fas fa-heart"></i>
-                </div>
-                <img src="" alt="Фото пары" class="match-photo partner-photo">
-            </div>
-            <h2>Взаимная симпатия!</h2>
-            <p>Вы понравились друг другу</p>
-            <div class="modal-buttons">
-                <button id="send-message-modal" class="primary-button">
-                    <i class="fas fa-comment"></i> Написать сообщение
-                </button>
-                <button id="keep-swiping" class="secondary-button">
-                    <i class="fas fa-heart"></i> Продолжить поиск
+                <button id="like-button" class="action-button like">
+                    <span class="icon">♥</span>
                 </button>
             </div>
         </div>
+
+        <!-- Страница профиля -->
+        <div id="profile-page" class="page">
+            <div class="profile-section">
+                <div class="profile-header">
+                    <h2>Мой профиль</h2>
+                    <button class="edit-button">Редактировать</button>
+                </div>
+                <div class="profile-photos">
+                    <!-- Фотографии профиля -->
+                </div>
+                <div class="profile-info">
+                    <h3 id="profile-name"></h3>
+                    <p id="profile-bio"></p>
+                    <div class="profile-details">
+                        <!-- Детали профиля -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Страница трансляций -->
+        <div id="live-page" class="page">
+            <div class="live-grid">
+                <!-- Активные трансляции -->
+            </div>
+        </div>
+
+        <!-- Страница лайков -->
+        <div id="likes-page" class="page">
+            <div class="likes-container">
+                <h2>Кому вы нравитесь</h2>
+                <div class="likes-grid">
+                    <!-- Лайки будут добавляться динамически -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Страница мэтчей и чатов -->
+        <div id="matches-page" class="page">
+            <div class="matches-container">
+                <div class="matches-grid">
+                    <!-- Мэтчи будут добавляться динамически -->
+                </div>
+                <div class="chat-container" style="display: none;">
+                    <div class="chat-header">
+                        <button class="back-button">←</button>
+                        <h3 class="chat-name"></h3>
+                    </div>
+                    <div class="messages-container">
+                        <!-- Сообщения будут добавляться динамически -->
+                    </div>
+                    <div class="message-input">
+                        <input type="text" placeholder="Написать сообщение...">
+                        <button class="send-button">Отправить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Нижняя навигация -->
+        <nav class="bottom-nav">
+            <div class="nav-item active" data-page="cards">
+                <span class="icon">🔍</span>
+                <span class="label">Поиск</span>
+            </div>
+            <div class="nav-item" data-page="live">
+                <span class="icon">📺</span>
+                <span class="label">Live</span>
+            </div>
+            <div class="nav-item" data-page="likes">
+                <span class="icon">❤️</span>
+                <span class="label">Лайки</span>
+            </div>
+            <div class="nav-item" data-page="matches">
+                <span class="icon">💬</span>
+                <span class="label">Чаты</span>
+            </div>
+            <div class="nav-item" data-page="profile">
+                <span class="icon">👤</span>
+                <span class="label">Профиль</span>
+            </div>
+        </nav>
     </div>
 
     <script src="app.js"></script>

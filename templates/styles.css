@@ -16,6 +16,7 @@
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 20px;
+    --nav-height: 60px;
 }
 
 * {
@@ -26,15 +27,271 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background: var(--gradient-primary);
+    background: var(--background-primary);
     color: var(--text-primary);
     line-height: 1.5;
     min-height: 100vh;
 }
 
-.container {
-    max-width: 600px;
-    margin: 0 auto;
+.app-container {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Навигация */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--nav-height);
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.nav-item i {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.nav-item span {
+    font-size: 12px;
+}
+
+.nav-item.active {
+    color: var(--primary-color);
+}
+
+/* Страницы */
+.page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: var(--nav-height);
+    background: var(--background-primary);
+    overflow-y: auto;
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+.page-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.page-header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+/* Страница карточек */
+.card-stack {
+    height: 100%;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-card {
+    width: 100%;
+    max-width: 360px;
+    height: 80vh;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: white;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+}
+
+.photo-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.photo-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-info-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    color: white;
+}
+
+.action-buttons {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 0 20px;
+}
+
+.action-button {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    background: white;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.action-button:hover {
+    transform: scale(1.1);
+}
+
+#like-button i { color: #ff4d4d; }
+#superlike-button i { color: #00bcd4; }
+#dislike-button i { color: #666666; }
+
+/* Страница профиля */
+.profile-header {
+    text-align: center;
+    padding: 30px 20px;
+    background: white;
+}
+
+.profile-photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    border: 3px solid var(--primary-color);
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 20px;
+    background: white;
+    margin-bottom: 10px;
+}
+
+.profile-content {
+    padding: 20px;
+}
+
+.profile-section {
+    background: white;
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 15px;
+}
+
+.profile-section h4 {
+    margin-bottom: 15px;
+}
+
+/* Страница эфиров */
+.live-grid {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.live-card {
+    background: white;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.live-preview {
+    position: relative;
+    aspect-ratio: 16/9;
+}
+
+.live-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.live-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #ff4444;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.viewers-count {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.live-info {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+/* Страница лайков */
+.likes-grid {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+/* Страница метчей */
+.matches-grid {
     padding: 20px;
 }
 
@@ -113,62 +370,6 @@ h2 {
     margin-right: 12px;
 }
 
-/* Профиль */
-#profile-section {
-    background: transparent;
-    box-shadow: none;
-}
-
-.profile-header {
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow-lg);
-}
-
-.profile-photo {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--primary-color);
-    margin-right: 20px;
-}
-
-.profile-text h3 {
-    font-size: 24px;
-    margin-bottom: 4px;
-    color: var(--text-primary);
-}
-
-.profile-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    padding: 20px;
-    background: white;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-}
-
-.stat-item {
-    text-align: center;
-}
-
-.stat-value {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--primary-color);
-}
-
-.stat-label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
 /* Интересы */
 .interests-section {
     padding: 20px;
@@ -220,97 +421,6 @@ h2 {
     width: 100%;
     height: 100%;
     object-fit: cover;
-}
-
-/* Карточка профиля */
-.profile-card {
-    position: relative;
-    height: calc(100vh - 180px);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    background: white;
-    box-shadow: var(--shadow-lg);
-}
-
-.photo-container {
-    position: relative;
-    height: 100%;
-    background: var(--background-secondary);
-}
-
-#profile-photo {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.profile-info-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 30px 20px 20px;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-    color: white;
-}
-
-.profile-info-overlay h3 {
-    font-size: 28px;
-    margin-bottom: 8px;
-    font-weight: 600;
-}
-
-.profile-info-overlay p {
-    font-size: 16px;
-    opacity: 0.9;
-}
-
-.action-buttons {
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding: 0 20px;
-}
-
-.action-button {
-    width: 65px;
-    height: 65px;
-    border-radius: 50%;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-md);
-}
-
-#like-button {
-    background: white;
-    color: #ff4d4d;
-}
-
-#superlike-button {
-    background: white;
-    color: #00bcd4;
-}
-
-#dislike-button {
-    background: white;
-    color: #666666;
-}
-
-.action-button:hover {
-    transform: scale(1.1);
-}
-
-.action-button i {
-    font-size: 28px;
 }
 
 /* Достижения */
