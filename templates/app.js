@@ -6,6 +6,11 @@ tg.expand();
 let currentSection = 'search';
 let currentChatPartner = null;
 let currentProfile = null;
+let filters = {
+    ageMin: 18,
+    ageMax: 50,
+    gender: 'female'
+};
 
 // Получение элементов DOM
 const sections = {
@@ -17,6 +22,12 @@ const sections = {
 
 // Получение данных пользователя
 const user = tg.initDataUnsafe.user;
+
+// Статистика
+let stats = {
+    likes: 0,
+    matches: 0
+};
 
 // Элементы интерфейса
 const profileSection = document.getElementById('profile-section');
@@ -36,6 +47,7 @@ async function fetchProfile() {
         const data = await response.json();
         if (response.ok) {
             displayProfile(data);
+            updateStats();
         } else {
             showNotification('Ошибка загрузки профиля', 'error');
         }
@@ -53,7 +65,8 @@ async function loadNextProfile() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                user_id: user.id
+                user_id: user.id,
+                filters: filters
             })
         });
         const data = await response.json();
@@ -61,6 +74,7 @@ async function loadNextProfile() {
         if (response.ok && data) {
             currentProfile = data;
             displayProfileCard(data);
+            initializeSwipeHandlers();
         } else {
             document.getElementById('profile-card').classList.add('hidden');
             showNotification('Нет доступных профилей', 'error');
@@ -71,18 +85,19 @@ async function loadNextProfile() {
     }
 }
 
-async function fetchMatches() {
+async function fetchMatches(type = 'all') {
     try {
-        const response = await fetch(`https://dating-bot-api.onrender.com/api/matches/${user.id}`);
+        const response = await fetch(`https://dating-bot-api.onrender.com/api/matches/${user.id}?type=${type}`);
         const data = await response.json();
         if (response.ok) {
             displayMatches(data);
+            updateStats();
         } else {
-            showError('Ошибка загрузки пар');
+            showNotification('Ошибка загрузки пар', 'error');
         }
     } catch (error) {
         console.error('Error:', error);
-        showError('Ошибка сервера');
+        showNotification('Ошибка сервера', 'error');
     }
 }
 
@@ -125,8 +140,11 @@ function displayProfileCard(profile) {
     
     document.getElementById('profile-photo').src = profile.photo_url || 'default-avatar.png';
     document.getElementById('profile-name').textContent = profile.name;
-    document.getElementById('profile-age').textContent = `${profile.age} лет`;
+    document.getElementById('profile-age').textContent = profile.age;
     document.getElementById('profile-bio').textContent = profile.bio || '';
+
+    // Анимация появления
+    card.style.animation = 'slideIn 0.3s ease-out';
 }
 
 function displayMatches(matches) {
@@ -138,13 +156,13 @@ function displayMatches(matches) {
     }
 
     matchesList.innerHTML = matches.map(match => `
-        <div class="match-card">
+        <div class="match-card" onclick="startChat(${match.user_id})">
             <img src="${match.photo_url || 'default-avatar.png'}" alt="${match.name}" class="match-photo">
             <div class="match-info">
                 <h3>${match.name}, ${match.age}</h3>
                 <p>${match.bio || ''}</p>
+                ${match.unread ? '<span class="unread-badge">Новое сообщение</span>' : ''}
             </div>
-            <button onclick="startChat(${match.user_id})" class="chat-button">💬</button>
         </div>
     `).join('');
 }
@@ -222,8 +240,35 @@ if (messageInput) {
 function handleAction(action) {
     if (!currentProfile) return;
     
+    const card = document.getElementById('profile-card');
+    
+    // Анимация
+    if (action === 'like') {
+        card.style.transform = 'translate(150%, 0) rotate(30deg)';
+    } else if (action === 'dislike') {
+        card.style.transform = 'translate(-150%, 0) rotate(-30deg)';
+    } else if (action === 'superlike') {
+        card.style.transform = 'translate(0, -150%) rotate(0deg)';
+    }
+
+    // Отправка действия
     sendData(action);
-    loadNextProfile();
+    
+    // Обновление статистики
+    if (action === 'like' || action === 'superlike') {
+        stats.likes++;
+        updateStats();
+    }
+
+    // Загрузка следующего профиля
+    setTimeout(() => {
+        card.style.display = 'none';
+        card.style.transform = '';
+        setTimeout(() => {
+            card.style.display = '';
+            loadNextProfile();
+        }, 100);
+    }, 300);
 }
 
 function showMatches() {
@@ -298,11 +343,124 @@ function updateMatches(matches) {
     displayMatches(matches);
 }
 
+// Обработка свайпов
+function initializeSwipeHandlers() {
+    const card = document.getElementById('profile-card');
+    let startX = 0;
+    let startY = 0;
+    let moveX = 0;
+    let moveY = 0;
+
+    card.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    });
+
+    card.addEventListener('touchmove', (e) => {
+        moveX = e.touches[0].clientX - startX;
+        moveY = e.touches[0].clientY - startY;
+        
+        const rotate = moveX * 0.1;
+        card.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${rotate}deg)`;
+    });
+
+    card.addEventListener('touchend', () => {
+        if (Math.abs(moveX) > 100) {
+            if (moveX > 0) {
+                handleAction('like');
+            } else {
+                handleAction('dislike');
+            }
+        } else {
+            card.style.transform = '';
+        }
+    });
+}
+
+// Обработка фильтров
+function initializeFilters() {
+    const ageMin = document.getElementById('age-min');
+    const ageMax = document.getElementById('age-max');
+    const ageMinValue = document.getElementById('age-min-value');
+    const ageMaxValue = document.getElementById('age-max-value');
+
+    ageMin.addEventListener('input', () => {
+        const min = parseInt(ageMin.value);
+        const max = parseInt(ageMax.value);
+        if (min > max) {
+            ageMax.value = min;
+            ageMaxValue.textContent = min;
+        }
+        ageMinValue.textContent = min;
+        filters.ageMin = min;
+    });
+
+    ageMax.addEventListener('input', () => {
+        const min = parseInt(ageMin.value);
+        const max = parseInt(ageMax.value);
+        if (max < min) {
+            ageMin.value = max;
+            ageMinValue.textContent = max;
+        }
+        ageMaxValue.textContent = max;
+        filters.ageMax = max;
+    });
+
+    document.querySelectorAll('.gender-button').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelectorAll('.gender-button').forEach(b => b.classList.remove('active'));
+            button.classList.add('active');
+            filters.gender = button.dataset.gender;
+        });
+    });
+}
+
+// Обновление статистики
+function updateStats() {
+    document.getElementById('likes-count').textContent = stats.likes;
+    document.getElementById('matches-count').textContent = stats.matches;
+}
+
+// Модальные окна
+function showMatchModal(matchData) {
+    const modal = document.getElementById('match-modal');
+    modal.classList.remove('hidden');
+    
+    document.getElementById('send-message-modal').onclick = () => {
+        modal.classList.add('hidden');
+        startChat(matchData.user_id);
+    };
+    
+    document.getElementById('keep-swiping').onclick = () => {
+        modal.classList.add('hidden');
+    };
+}
+
+// Обработчики событий
+document.getElementById('filter-button').addEventListener('click', () => {
+    const filters = document.getElementById('search-filters');
+    filters.classList.toggle('hidden');
+});
+
+document.getElementById('apply-filters').addEventListener('click', () => {
+    document.getElementById('search-filters').classList.add('hidden');
+    loadNextProfile();
+});
+
+document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', () => {
+        document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+        button.classList.add('active');
+        fetchMatches(button.dataset.tab);
+    });
+});
+
 // Инициализация приложения
 window.addEventListener('load', async () => {
     document.getElementById('profile-section').classList.remove('hidden');
     document.getElementById('search-section').classList.remove('hidden');
     
+    initializeFilters();
     await fetchProfile();
     await loadNextProfile();
     
