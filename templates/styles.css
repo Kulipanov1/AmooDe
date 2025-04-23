@@ -23,20 +23,40 @@ body {
     background-color: var(--tg-theme-bg-color);
     color: var(--tg-theme-text-color);
     line-height: 1.5;
+    min-height: 100vh;
 }
 
 .container {
     max-width: 600px;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 /* Секции */
 section {
-    margin-bottom: 30px;
-    background: rgba(255, 255, 255, 0.8);
+    background: white;
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0; /* Убираем margin-bottom */
+}
+
+#profile-section {
+    order: 1;
+}
+
+#search-section {
+    order: 2;
+}
+
+#matches-section {
+    order: 3;
+}
+
+#messages-section {
+    order: 4;
 }
 
 .section-header {
@@ -187,13 +207,6 @@ button:active {
 }
 
 /* Сообщения */
-#messages-section {
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 100px);
-    padding: 0;
-}
-
 #messages {
     flex-grow: 1;
     overflow-y: auto;

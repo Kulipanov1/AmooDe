@@ -3,7 +3,7 @@ let tg = window.Telegram.WebApp;
 tg.expand();
 
 // Инициализация состояния приложения
-let currentSection = 'profile';
+let currentSection = 'search';
 let currentChatPartner = null;
 let currentProfile = null;
 
@@ -271,7 +271,11 @@ function createMessageElement(text, isSent) {
 function showSection(sectionName) {
     Object.entries(sections).forEach(([name, element]) => {
         if (element) {
-            element.classList.toggle('hidden', name !== sectionName);
+            if (name === 'profile' || name === 'search') {
+                element.classList.remove('hidden');
+            } else {
+                element.classList.toggle('hidden', name !== sectionName);
+            }
         }
     });
     currentSection = sectionName;
@@ -295,8 +299,15 @@ function updateMatches(matches) {
 }
 
 // Инициализация приложения
-window.addEventListener('load', () => {
-    showSection('profile');
-    fetchProfile();
-    loadNextProfile();
+window.addEventListener('load', async () => {
+    document.getElementById('profile-section').classList.remove('hidden');
+    document.getElementById('search-section').classList.remove('hidden');
+    
+    await fetchProfile();
+    await loadNextProfile();
+    
+    const profileCard = document.getElementById('profile-card');
+    if (profileCard) {
+        profileCard.classList.remove('hidden');
+    }
 }); 
