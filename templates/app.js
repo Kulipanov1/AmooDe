@@ -1,9 +1,20 @@
 // Инициализация Telegram WebApp
-const webApp = window.Telegram.WebApp;
-webApp.expand();
+let tg = window.Telegram.WebApp;
+tg.expand();
+
+// Инициализация состояния приложения
+let currentSection = 'profile';
+let currentChatPartner = null;
+
+// Получение элементов DOM
+const sections = {
+    profile: document.getElementById('profile-section'),
+    matches: document.getElementById('matches-section'),
+    messages: document.getElementById('messages-section')
+};
 
 // Получение данных пользователя
-const user = webApp.initDataUnsafe.user;
+const user = tg.initDataUnsafe.user;
 let currentProfile = null;
 
 // Элементы интерфейса
@@ -20,7 +31,7 @@ const sendMessageBtn = document.getElementById('send-message');
 // Функции для работы с API
 async function fetchProfile() {
     try {
-        const response = await fetch(`/api/profile/${user.id}`);
+        const response = await fetch(`https://dating-bot-api.onrender.com/api/profile/${user.id}`);
         const data = await response.json();
         if (response.ok) {
             displayProfile(data);
@@ -35,7 +46,7 @@ async function fetchProfile() {
 
 async function loadNextProfile() {
     try {
-        const response = await fetch('/api/next-profile', {
+        const response = await fetch(`https://dating-bot-api.onrender.com/api/next-profile`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -61,7 +72,7 @@ async function loadNextProfile() {
 
 async function fetchMatches() {
     try {
-        const response = await fetch(`/api/matches/${user.id}`);
+        const response = await fetch(`https://dating-bot-api.onrender.com/api/matches/${user.id}`);
         const data = await response.json();
         if (response.ok) {
             displayMatches(data);
@@ -76,7 +87,7 @@ async function fetchMatches() {
 
 async function fetchMessages(chatPartnerId) {
     try {
-        const response = await fetch(`/api/messages/${user.id}/${chatPartnerId}`);
+        const response = await fetch(`https://dating-bot-api.onrender.com/api/messages/${user.id}/${chatPartnerId}`);
         const data = await response.json();
         if (response.ok) {
             displayMessages(data);
@@ -154,24 +165,17 @@ function displayMessages(messages) {
 
 // Обработчики событий
 document.getElementById('edit-profile').addEventListener('click', () => {
-    webApp.close();
+    tg.close();
 });
 
-document.getElementById('like').addEventListener('click', () => {
-    if (currentProfile) {
-        sendReaction(currentProfile.user_id, 'like');
-    }
+document.getElementById('like-button').addEventListener('click', () => handleAction('like'));
+document.getElementById('dislike-button').addEventListener('click', () => handleAction('dislike'));
+document.getElementById('matches-button').addEventListener('click', showMatches);
+document.getElementById('send-message').addEventListener('click', sendMessage);
+document.getElementById('back-to-matches').addEventListener('click', () => {
+    showSection('matches');
+    currentChatPartner = null;
 });
-
-document.getElementById('dislike').addEventListener('click', () => {
-    if (currentProfile) {
-        sendReaction(currentProfile.user_id, 'dislike');
-    }
-});
-
-if (sendMessageBtn) {
-    sendMessageBtn.addEventListener('click', sendMessage);
-}
 
 if (messageInput) {
     messageInput.addEventListener('keypress', (e) => {
@@ -190,89 +194,111 @@ function showError(message) {
     setTimeout(() => errorDiv.remove(), 3000);
 }
 
-async function sendReaction(targetUserId, reaction) {
-    try {
-        const response = await fetch('/api/reaction', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                user_id: user.id,
-                target_user_id: targetUserId,
-                reaction: reaction
-            })
-        });
-        
-        if (response.ok) {
-            if (reaction === 'like') {
-                const matchData = await response.json();
-                if (matchData.isMatch) {
-                    showSuccess('У вас взаимная симпатия! 💕');
-                }
-            }
-            loadNextProfile();
-        } else {
-            showError('Ошибка при отправке реакции');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showError('Ошибка сервера');
-    }
+// Функция для отправки данных в Telegram
+function sendData(action, data = {}) {
+    tg.sendData(JSON.stringify({
+        action: action,
+        ...data
+    }));
 }
 
-async function sendMessage() {
+// Обработка действий лайк/дизлайк
+function handleAction(action) {
+    sendData(action);
+}
+
+// Показ списка пар
+function showMatches() {
+    showSection('matches');
+    sendData('show_matches');
+}
+
+// Начало чата
+function startChat(userId) {
+    currentChatPartner = userId;
+    showSection('messages');
+    sendData('start_chat', { partner_id: userId });
+    document.getElementById('messages').innerHTML = '';
+}
+
+// Отправка сообщения
+function sendMessage() {
     const text = messageInput.value.trim();
-    if (!text || !currentChatPartner) return;
-
-    try {
-        const response = await fetch('/api/messages/send', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                sender_id: user.id,
-                receiver_id: currentChatPartner,
-                text: text
-            })
+    
+    if (text && currentChatPartner) {
+        const messageElement = createMessageElement(text, true);
+        document.getElementById('messages').appendChild(messageElement);
+        
+        sendData('send_message', {
+            partner_id: currentChatPartner,
+            text: text
         });
         
-        if (response.ok) {
-            messageInput.value = '';
-            fetchMessages(currentChatPartner);
-        } else {
-            showError('Ошибка при отправке сообщения');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showError('Ошибка сервера');
+        messageInput.value = '';
+        scrollToBottom();
     }
 }
 
-let currentChatPartner = null;
-
-async function startChat(targetUserId) {
-    currentChatPartner = targetUserId;
-    messagesSection.classList.remove('hidden');
-    matchesSection.classList.add('hidden');
-    await fetchMessages(targetUserId);
+// Создание элемента сообщения
+function createMessageElement(text, isSent) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+    messageDiv.textContent = text;
+    return messageDiv;
 }
 
-function showSuccess(message) {
-    const successDiv = document.createElement('div');
-    successDiv.className = 'success-message';
-    successDiv.textContent = message;
-    document.body.appendChild(successDiv);
-    setTimeout(() => successDiv.remove(), 3000);
+// Прокрутка чата вниз
+function scrollToBottom() {
+    const messagesContainer = document.getElementById('messages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// Инициализация
-function init() {
-    fetchProfile();
-    fetchMatches();
-    loadNextProfile();
+// Переключение между разделами
+function showSection(sectionName) {
+    Object.entries(sections).forEach(([name, element]) => {
+        element.classList.toggle('hidden', name !== sectionName);
+    });
+    currentSection = sectionName;
 }
 
-// Запуск приложения
-init(); 
+// Обработка входящих сообщений
+function handleIncomingMessage(data) {
+    if (currentSection === 'messages' && currentChatPartner === data.sender_id) {
+        const messageElement = createMessageElement(data.text, false);
+        document.getElementById('messages').appendChild(messageElement);
+        scrollToBottom();
+    }
+}
+
+// Обработка обновления профиля
+function updateProfile(data) {
+    document.getElementById('profile-photo').src = data.photo_url;
+    document.getElementById('profile-name').textContent = data.name;
+    document.getElementById('profile-age').textContent = data.age;
+    document.getElementById('profile-bio').textContent = data.bio;
+}
+
+// Обработка обновления списка пар
+function updateMatches(matches) {
+    const matchesList = document.getElementById('matches-list');
+    matchesList.innerHTML = '';
+    
+    matches.forEach(match => {
+        const matchCard = document.createElement('div');
+        matchCard.className = 'match-card';
+        matchCard.innerHTML = `
+            <img src="${match.photo_url}" alt="${match.name}" class="match-photo">
+            <div class="match-info">
+                <h3>${match.name}, ${match.age}</h3>
+                <p>${match.bio}</p>
+            </div>
+            <button onclick="startChat(${match.user_id})">Чат</button>
+        `;
+        matchesList.appendChild(matchCard);
+    });
+}
+
+// Инициализация приложения
+window.addEventListener('load', () => {
+    showSection('profile');
+}); 
