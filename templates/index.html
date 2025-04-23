@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dating App</title>
+    <title>Amoo - Приложение для знакомств</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
@@ -12,21 +12,83 @@
     <div class="container">
         <!-- Секция профиля -->
         <section id="profile-section">
-            <div class="section-header">
-                <h2>Ваш профиль</h2>
-                <button id="edit-profile" class="icon-button">
-                    <i class="fas fa-pencil-alt"></i>
-                </button>
+            <div class="profile-header">
+                <div class="profile-main">
+                    <img src="default-avatar.png" alt="Фото профиля" class="profile-photo" id="user-photo">
+                    <div class="profile-text">
+                        <h3><span id="user-name">Александр Петров</span> <i class="fas fa-star-of-life verified-icon"></i></h3>
+                        <p class="profile-status">Ищу интересные знакомства</p>
+                        <button id="edit-profile" class="edit-button">
+                            Редактировать профиль
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div id="profile-info"></div>
+
             <div class="profile-stats">
                 <div class="stat-item">
-                    <span class="stat-value" id="likes-count">0</span>
-                    <span class="stat-label">Лайков</span>
+                    <span class="stat-value">1.2K</span>
+                    <span class="stat-label">Подписчики</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-value" id="matches-count">0</span>
-                    <span class="stat-label">Пар</span>
+                    <span class="stat-value">567</span>
+                    <span class="stat-label">Подписки</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="likes-count">890</span>
+                    <span class="stat-label">Лайки</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="matches-count">123</span>
+                    <span class="stat-label">Совпадения</span>
+                </div>
+            </div>
+
+            <div class="interests-section">
+                <h3>Интересы</h3>
+                <div class="interests-grid">
+                    <div class="interest-tag">Путешествия</div>
+                    <div class="interest-tag">Спорт</div>
+                    <div class="interest-tag">Музыка</div>
+                    <div class="interest-tag">Кино</div>
+                    <div class="interest-tag">Искусство</div>
+                </div>
+            </div>
+
+            <div class="photos-section">
+                <h3>Фотографии</h3>
+                <div class="photos-grid">
+                    <div class="photo-item">
+                        <img src="photo1.jpg" alt="Фото 1">
+                    </div>
+                    <div class="photo-item">
+                        <img src="photo2.jpg" alt="Фото 2">
+                    </div>
+                    <div class="photo-item">
+                        <img src="photo3.jpg" alt="Фото 3">
+                    </div>
+                </div>
+            </div>
+
+            <div class="achievements-section">
+                <h3>Достижения</h3>
+                <div class="achievement-item">
+                    <div class="achievement-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="achievement-info">
+                        <h4>Популярный профиль</h4>
+                        <p>Более 1000 лайков</p>
+                    </div>
+                </div>
+                <div class="achievement-item">
+                    <div class="achievement-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="achievement-info">
+                        <h4>Успешный матч</h4>
+                        <p>100 взаимных симпатий</p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -40,7 +102,6 @@
                 </button>
             </div>
             
-            <!-- Фильтры поиска -->
             <div id="search-filters" class="hidden">
                 <div class="filter-group">
                     <label>Возраст:</label>
@@ -66,16 +127,29 @@
                         </button>
                     </div>
                 </div>
+                <div class="filter-group">
+                    <label>Интересы:</label>
+                    <div class="interests-filter">
+                        <div class="interest-tag selectable">Путешествия</div>
+                        <div class="interest-tag selectable">Спорт</div>
+                        <div class="interest-tag selectable">Музыка</div>
+                        <div class="interest-tag selectable">Кино</div>
+                        <div class="interest-tag selectable">Искусство</div>
+                    </div>
+                </div>
                 <button id="apply-filters" class="primary-button">Применить</button>
             </div>
 
-            <!-- Карточка профиля -->
             <div id="profile-card" class="profile-card">
                 <div class="photo-container">
                     <img id="profile-photo" src="" alt="Фото профиля">
                     <div class="profile-info-overlay">
                         <h3><span id="profile-name"></span>, <span id="profile-age"></span></h3>
                         <p id="profile-bio"></p>
+                        <div class="profile-interests">
+                            <div class="interest-tag">Путешествия</div>
+                            <div class="interest-tag">Музыка</div>
+                        </div>
                     </div>
                 </div>
                 <div class="action-buttons">
@@ -90,10 +164,6 @@
                     </button>
                 </div>
             </div>
-
-            <button id="matches-button" class="nav-button">
-                <i class="fas fa-comments"></i> Показать пары
-            </button>
         </section>
 
         <!-- Секция пар -->
@@ -105,8 +175,13 @@
                 <h2>Ваши пары</h2>
             </div>
             <div class="matches-tabs">
-                <button class="tab-button active" data-tab="new">Новые</button>
-                <button class="tab-button" data-tab="all">Все</button>
+                <button class="tab-button active" data-tab="new">
+                    <i class="fas fa-sparkles"></i> Новые
+                    <span class="badge">3</span>
+                </button>
+                <button class="tab-button" data-tab="all">
+                    <i class="fas fa-users"></i> Все
+                </button>
             </div>
             <div id="matches-list"></div>
         </section>
@@ -121,9 +196,12 @@
                     <img id="chat-partner-photo" src="" alt="Фото собеседника" class="chat-photo">
                     <div class="chat-info">
                         <h3 id="chat-partner-name"></h3>
-                        <span id="chat-status">онлайн</span>
+                        <span id="chat-status" class="online">онлайн</span>
                     </div>
                 </div>
+                <button class="icon-button">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
             </div>
             <div id="messages"></div>
             <div class="message-input">
@@ -131,7 +209,7 @@
                     <i class="fas fa-paperclip"></i>
                 </button>
                 <input type="text" id="message-text" placeholder="Введите сообщение...">
-                <button id="send-message">
+                <button id="send-message" class="icon-button">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
@@ -141,12 +219,22 @@
     <!-- Модальные окна -->
     <div id="match-modal" class="modal hidden">
         <div class="modal-content match-content">
-            <img src="match-illustration.png" alt="It's a match!" class="match-illustration">
+            <div class="match-photos">
+                <img src="" alt="Ваше фото" class="match-photo your-photo">
+                <div class="match-heart">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <img src="" alt="Фото пары" class="match-photo partner-photo">
+            </div>
             <h2>Взаимная симпатия!</h2>
             <p>Вы понравились друг другу</p>
             <div class="modal-buttons">
-                <button id="send-message-modal" class="primary-button">Написать сообщение</button>
-                <button id="keep-swiping" class="secondary-button">Продолжить поиск</button>
+                <button id="send-message-modal" class="primary-button">
+                    <i class="fas fa-comment"></i> Написать сообщение
+                </button>
+                <button id="keep-swiping" class="secondary-button">
+                    <i class="fas fa-heart"></i> Продолжить поиск
+                </button>
             </div>
         </div>
     </div>
