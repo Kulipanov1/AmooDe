@@ -1,16 +1,104 @@
-// Инициализация Telegram WebApp
-let tg = window.Telegram?.WebApp;
+// Константы
+const Colors = {
+    primary: '#FF6B6B',
+    secondary: '#4ECDC4',
+    background: '#FFFFFF',
+    card: '#FFFFFF',
+    text: '#333333',
+    subtext: '#8E8E93',
+    border: '#E5E5EA',
+    success: '#34C759',
+    error: '#FF3B30',
+    warning: '#FFCC00',
+    inactive: '#C7C7CC',
+    gradient: {
+        start: '#FF6B6B',
+        end: '#FF8E8E'
+    }
+};
+
+// Мок данные
+const mockUsers = [
+    {
+        id: '1',
+        name: 'София',
+        age: 28,
+        bio: 'Люблю кофе, йогу и приключения. Давай исследовать город вместе!',
+        location: 'Москва',
+        distance: 5,
+        photos: [
+            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80',
+            'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80'
+        ],
+        interests: ['Путешествия', 'Йога', 'Фотография', 'Кофе'],
+        lastActive: '2 мин назад'
+    },
+    {
+        id: '2',
+        name: 'Александр',
+        age: 30,
+        bio: "Архитектор днем, шеф-повар вечером. Могу спроектировать дом мечты и приготовить в нем ужин.",
+        location: 'Санкт-Петербург',
+        distance: 8,
+        photos: [
+            'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80',
+            'https://images.unsplash.com/photo-1488161628813-04466f872be2?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80'
+        ],
+        interests: ['Архитектура', 'Кулинария', 'Походы', 'Джаз'],
+        lastActive: '1 час назад'
+    }
+];
+
+// Telegram WebApp утилиты
+const isTelegramWebApp = () => {
+    return window.Telegram && window.Telegram.WebApp;
+};
+
+const getTelegramWebApp = () => {
+    if (!isTelegramWebApp()) {
+        console.error('Telegram WebApp не доступен');
+        return null;
+    }
+    return window.Telegram.WebApp;
+};
+
+const initTelegramWebApp = () => {
+    const webApp = getTelegramWebApp();
+    if (webApp) {
+        webApp.ready();
+        webApp.expand();
+        
+        // Настраиваем тему
+        document.documentElement.className = webApp.colorScheme;
+        
+        // Обработчик изменения темы
+        webApp.onEvent('themeChanged', () => {
+            document.documentElement.className = webApp.colorScheme;
+        });
+        
+        return webApp;
+    }
+    return null;
+};
+
+const getTelegramUser = () => {
+    const webApp = getTelegramWebApp();
+    return webApp ? webApp.initDataUnsafe.user : null;
+};
 
 // Состояние приложения
 const state = {
+    currentUser: null,
     currentProfile: null,
     currentChat: null,
+    profiles: [...mockUsers],
     matches: [],
     messages: [],
     filters: {
         ageMin: 18,
         ageMax: 50,
         gender: 'all',
+        distance: 50,
         interests: []
     }
 };
@@ -360,10 +448,15 @@ const modalHandlers = {
 
 // Инициализация приложения
 function initApp() {
-    // Проверяем инициализацию Telegram WebApp
-    if (!tg) {
-        console.error('Telegram WebApp не инициализирован');
-        return;
+    const webApp = initTelegramWebApp();
+    const user = getTelegramUser();
+    
+    if (user) {
+        state.currentUser = {
+            id: user.id,
+            name: user.first_name,
+            photo: user.photo_url
+        };
     }
     
     // Настраиваем обработчики навигации
@@ -387,9 +480,6 @@ function initApp() {
     
     // Загружаем первый профиль
     loadNextProfile();
-    
-    // Расширяем WebApp на весь экран
-    tg.expand();
 }
 
 // Запускаем приложение после загрузки DOM
@@ -438,6 +528,168 @@ function appendMessage(message, isSent) {
 const pages = ['cards', 'profile', 'live', 'likes', 'matches'];
 let currentPage = 'cards';
 
+// Функции загрузки данных для страниц
+async function loadPageData(pageId) {
+    switch (pageId) {
+        case 'cards':
+            await loadMoreCards();
+            break;
+        case 'profile':
+            await loadProfileData();
+            break;
+        case 'live':
+            await loadLiveStreams();
+            break;
+        case 'likes':
+            await loadLikes();
+            break;
+        case 'matches':
+            await loadMatches();
+            break;
+    }
+}
+
+async function loadProfileData() {
+    try {
+        const response = await fetch('/api/profile');
+        const profile = await response.json();
+        
+        const profileName = document.getElementById('profile-name');
+        const profileBio = document.getElementById('profile-bio');
+        const profileDetails = document.querySelector('.profile-details');
+        
+        if (profileName) profileName.textContent = profile.name;
+        if (profileBio) profileBio.textContent = profile.bio || 'Расскажите о себе';
+        if (profileDetails) {
+            profileDetails.innerHTML = `
+                <div class="profile-stat">
+                    <span class="stat-value">${profile.likes || 0}</span>
+                    <span class="stat-label">Лайков</span>
+                </div>
+                <div class="profile-stat">
+                    <span class="stat-value">${profile.matches || 0}</span>
+                    <span class="stat-label">Мэтчей</span>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading profile:', error);
+    }
+}
+
+async function loadLiveStreams() {
+    try {
+        const response = await fetch('/api/live-streams');
+        const streams = await response.json();
+        
+        const liveGrid = document.querySelector('.live-grid');
+        if (!liveGrid) return;
+        
+        if (streams.length === 0) {
+            liveGrid.innerHTML = `
+                <div class="no-content">
+                    <h3>Нет активных трансляций</h3>
+                    <p>Попробуйте зайти позже</p>
+                </div>
+            `;
+            return;
+        }
+        
+        liveGrid.innerHTML = streams.map(stream => `
+            <div class="live-card">
+                <div class="live-preview">
+                    <img src="${stream.thumbnail}" alt="${stream.title}">
+                    <span class="live-badge">LIVE</span>
+                    <span class="viewers-count">${stream.viewers} 👥</span>
+                </div>
+                <div class="live-info">
+                    <img src="${stream.userPhoto}" alt="" class="user-avatar">
+                    <div>
+                        <h4>${stream.userName}</h4>
+                        <p>${stream.title}</p>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading live streams:', error);
+    }
+}
+
+async function loadLikes() {
+    try {
+        const response = await fetch('/api/likes');
+        const likes = await response.json();
+        
+        const likesGrid = document.querySelector('.likes-grid');
+        if (!likesGrid) return;
+        
+        if (likes.length === 0) {
+            likesGrid.innerHTML = `
+                <div class="no-content">
+                    <h3>Пока нет лайков</h3>
+                    <p>Продолжайте искать интересных людей</p>
+                </div>
+            `;
+            return;
+        }
+        
+        likesGrid.innerHTML = likes.map(like => `
+            <div class="like-card">
+                <img src="${like.photo}" alt="${like.name}" class="like-photo">
+                <div class="like-info">
+                    <h3>${like.name}, ${like.age}</h3>
+                    <p>${like.bio || ''}</p>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading likes:', error);
+    }
+}
+
+async function loadMatches() {
+    try {
+        const response = await fetch('/api/matches');
+        const matches = await response.json();
+        
+        const matchesGrid = document.querySelector('.matches-grid');
+        if (!matchesGrid) return;
+        
+        if (matches.length === 0) {
+            matchesGrid.innerHTML = `
+                <div class="no-content">
+                    <h3>Пока нет мэтчей</h3>
+                    <p>Продолжайте искать интересных людей</p>
+                </div>
+            `;
+            return;
+        }
+        
+        matchesGrid.innerHTML = matches.map(match => `
+            <div class="match-card" data-user-id="${match.userId}">
+                <img src="${match.photo}" alt="${match.name}" class="match-photo">
+                <div class="match-info">
+                    <h3>${match.name}, ${match.age}</h3>
+                    <p>${match.lastMessage || 'Начните общение!'}</p>
+                </div>
+                ${!match.hasMessages ? '<span class="new-badge">Новый</span>' : ''}
+            </div>
+        `).join('');
+        
+        // Добавляем обработчики для карточек мэтчей
+        document.querySelectorAll('.match-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const userId = card.dataset.userId;
+                openChat(userId);
+            });
+        });
+    } catch (error) {
+        console.error('Error loading matches:', error);
+    }
+}
+
+// Обновляем функцию showPage
 function showPage(pageId) {
     // Скрыть все страницы
     pages.forEach(page => {
@@ -449,6 +701,9 @@ function showPage(pageId) {
     document.getElementById(`${pageId}-page`).classList.add('active');
     document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
     currentPage = pageId;
+    
+    // Загружаем данные для страницы
+    loadPageData(pageId);
 }
 
 // Инициализация навигации
