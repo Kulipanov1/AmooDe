@@ -9,30 +9,41 @@
 </head>
 <body>
     <div class="container">
-        <div id="profile-section">
+        <section id="profile-section">
             <h2>Ваш профиль</h2>
             <div id="profile-info"></div>
             <button id="edit-profile">✏️ Редактировать</button>
-        </div>
+        </section>
         
-        <div id="search-section">
+        <section id="search-section">
             <h2>Поиск людей</h2>
             <div id="profile-card" class="hidden">
                 <img id="profile-photo" src="" alt="Фото профиля">
-                <h3 id="profile-name"></h3>
-                <p id="profile-age"></p>
-                <p id="profile-bio"></p>
+                <div class="content">
+                    <h3 id="profile-name"></h3>
+                    <p id="profile-age"></p>
+                    <p id="profile-bio"></p>
+                </div>
                 <div class="buttons">
                     <button id="dislike">👎</button>
                     <button id="like">❤️</button>
                 </div>
             </div>
-        </div>
+        </section>
         
-        <div id="matches-section">
+        <section id="matches-section">
             <h2>Ваши пары</h2>
             <div id="matches-list"></div>
-        </div>
+        </section>
+
+        <section id="messages-section" class="hidden">
+            <h2>Сообщения</h2>
+            <div id="messages"></div>
+            <div class="message-input">
+                <input type="text" id="message-text" placeholder="Введите сообщение...">
+                <button id="send-message">📤</button>
+            </div>
+        </section>
     </div>
     <script src="/static/bundle.js"></script>
 </body>

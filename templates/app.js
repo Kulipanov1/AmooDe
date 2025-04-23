@@ -13,6 +13,9 @@ const searchSection = document.getElementById('search-section');
 const profileCard = document.getElementById('profile-card');
 const matchesSection = document.getElementById('matches-section');
 const matchesList = document.getElementById('matches-list');
+const messagesSection = document.getElementById('messages-section');
+const messageInput = document.getElementById('message-text');
+const sendMessageBtn = document.getElementById('send-message');
 
 // Функции для работы с API
 async function fetchProfile() {
@@ -27,6 +30,32 @@ async function fetchProfile() {
     } catch (error) {
         console.error('Error:', error);
         showError('Ошибка сервера');
+    }
+}
+
+async function loadNextProfile() {
+    try {
+        const response = await fetch('/api/next-profile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: user.id
+            })
+        });
+        const data = await response.json();
+        
+        if (response.ok && data) {
+            currentProfile = data;
+            displayProfileCard(data);
+        } else {
+            profileCard.classList.add('hidden');
+            showError('Нет доступных профилей');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Ошибка загрузки профиля');
     }
 }
 
@@ -45,9 +74,9 @@ async function fetchMatches() {
     }
 }
 
-async function fetchMessages() {
+async function fetchMessages(chatPartnerId) {
     try {
-        const response = await fetch(`/api/messages/${user.id}`);
+        const response = await fetch(`/api/messages/${user.id}/${chatPartnerId}`);
         const data = await response.json();
         if (response.ok) {
             displayMessages(data);
@@ -73,6 +102,14 @@ function displayProfile(profile) {
             <p><strong>Ищу:</strong> ${profile.search_gender}</p>
         </div>
     `;
+}
+
+function displayProfileCard(profile) {
+    profileCard.classList.remove('hidden');
+    document.getElementById('profile-photo').src = profile.photo_url || 'default-avatar.png';
+    document.getElementById('profile-name').textContent = profile.name;
+    document.getElementById('profile-age').textContent = `${profile.age} лет`;
+    document.getElementById('profile-bio').textContent = profile.bio;
 }
 
 function displayMatches(matches) {
@@ -110,6 +147,9 @@ function displayMessages(messages) {
             </div>
         </div>
     `).join('');
+    
+    // Прокрутка к последнему сообщению
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
 // Обработчики событий
@@ -128,6 +168,18 @@ document.getElementById('dislike').addEventListener('click', () => {
         sendReaction(currentProfile.user_id, 'dislike');
     }
 });
+
+if (sendMessageBtn) {
+    sendMessageBtn.addEventListener('click', sendMessage);
+}
+
+if (messageInput) {
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+}
 
 // Вспомогательные функции
 function showError(message) {
@@ -153,7 +205,12 @@ async function sendReaction(targetUserId, reaction) {
         });
         
         if (response.ok) {
-            // Показываем следующий профиль
+            if (reaction === 'like') {
+                const matchData = await response.json();
+                if (matchData.isMatch) {
+                    showSuccess('У вас взаимная симпатия! 💕');
+                }
+            }
             loadNextProfile();
         } else {
             showError('Ошибка при отправке реакции');
@@ -164,20 +221,58 @@ async function sendReaction(targetUserId, reaction) {
     }
 }
 
+async function sendMessage() {
+    const text = messageInput.value.trim();
+    if (!text || !currentChatPartner) return;
+
+    try {
+        const response = await fetch('/api/messages/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                sender_id: user.id,
+                receiver_id: currentChatPartner,
+                text: text
+            })
+        });
+        
+        if (response.ok) {
+            messageInput.value = '';
+            fetchMessages(currentChatPartner);
+        } else {
+            showError('Ошибка при отправке сообщения');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Ошибка сервера');
+    }
+}
+
+let currentChatPartner = null;
+
 async function startChat(targetUserId) {
-    webApp.sendData(JSON.stringify({
-        action: 'start_chat',
-        target_user_id: targetUserId
-    }));
+    currentChatPartner = targetUserId;
+    messagesSection.classList.remove('hidden');
+    matchesSection.classList.add('hidden');
+    await fetchMessages(targetUserId);
+}
+
+function showSuccess(message) {
+    const successDiv = document.createElement('div');
+    successDiv.className = 'success-message';
+    successDiv.textContent = message;
+    document.body.appendChild(successDiv);
+    setTimeout(() => successDiv.remove(), 3000);
 }
 
 // Инициализация
 function init() {
     fetchProfile();
     fetchMatches();
-    fetchMessages();
+    loadNextProfile();
 }
 
 // Запуск приложения
 init(); 
-loadNextProfile(); 
