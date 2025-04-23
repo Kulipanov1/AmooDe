@@ -1,6 +1,5 @@
 // Инициализация Telegram WebApp
-const tg = window.Telegram.WebApp;
-tg.expand();
+let tg = window.Telegram?.WebApp;
 
 // Состояние приложения
 const state = {
@@ -18,52 +17,24 @@ const state = {
 
 // DOM элементы
 const elements = {
-    sections: {
-        profile: document.getElementById('profile-section'),
-        search: document.getElementById('search-section'),
-        matches: document.getElementById('matches-section'),
-        messages: document.getElementById('messages-section')
+    pages: {
+        cards: document.getElementById('cards-page'),
+        profile: document.getElementById('profile-page'),
+        live: document.getElementById('live-page'),
+        likes: document.getElementById('likes-page'),
+        matches: document.getElementById('matches-page')
     },
-    profile: {
-        photo: document.getElementById('user-photo'),
-        name: document.getElementById('user-name'),
-        editButton: document.getElementById('edit-profile'),
-        likesCount: document.getElementById('likes-count'),
-        matchesCount: document.getElementById('matches-count')
-    },
-    search: {
-        filters: document.getElementById('search-filters'),
-        filterButton: document.getElementById('filter-button'),
-        ageMin: document.getElementById('age-min'),
-        ageMax: document.getElementById('age-max'),
-        ageMinValue: document.getElementById('age-min-value'),
-        ageMaxValue: document.getElementById('age-max-value'),
-        genderButtons: document.querySelectorAll('.gender-button'),
-        applyFilters: document.getElementById('apply-filters'),
-        profileCard: document.getElementById('profile-card'),
+    cards: {
+        container: document.querySelector('.card-stack'),
+        card: document.querySelector('.profile-card'),
+        photo: document.querySelector('.photo-container img'),
+        name: document.querySelector('.profile-info-overlay h3'),
+        bio: document.querySelector('.profile-info-overlay p'),
         likeButton: document.getElementById('like-button'),
         dislikeButton: document.getElementById('dislike-button'),
         superlikeButton: document.getElementById('superlike-button')
     },
-    matches: {
-        list: document.getElementById('matches-list'),
-        tabs: document.querySelectorAll('.matches-tabs .tab-button'),
-        backButton: document.querySelector('#matches-section .back-button')
-    },
-    messages: {
-        container: document.getElementById('messages'),
-        input: document.getElementById('message-text'),
-        sendButton: document.getElementById('send-message'),
-        backButton: document.getElementById('back-to-matches'),
-        partnerName: document.getElementById('chat-partner-name'),
-        partnerPhoto: document.getElementById('chat-partner-photo'),
-        status: document.getElementById('chat-status')
-    },
-    modal: {
-        match: document.getElementById('match-modal'),
-        sendMessage: document.getElementById('send-message-modal'),
-        keepSwiping: document.getElementById('keep-swiping')
-    }
+    navigation: document.querySelectorAll('.nav-item')
 };
 
 // Утилиты
@@ -388,20 +359,40 @@ const modalHandlers = {
 };
 
 // Инициализация приложения
-async function initApp() {
-    await profileHandlers.init();
+function initApp() {
+    // Проверяем инициализацию Telegram WebApp
+    if (!tg) {
+        console.error('Telegram WebApp не инициализирован');
+        return;
+    }
     
-    profileHandlers.setupListeners();
-    searchHandlers.setupListeners();
-    matchesHandlers.setupListeners();
-    messageHandlers.setupListeners();
-    modalHandlers.setupListeners();
+    // Настраиваем обработчики навигации
+    elements.navigation.forEach(item => {
+        item.addEventListener('click', () => {
+            const pageId = item.getAttribute('data-page');
+            if (pageId) showPage(pageId);
+        });
+    });
+    
+    // Настраиваем обработчики кнопок действий
+    if (elements.cards.likeButton) {
+        elements.cards.likeButton.addEventListener('click', () => handleAction('like'));
+    }
+    if (elements.cards.dislikeButton) {
+        elements.cards.dislikeButton.addEventListener('click', () => handleAction('dislike'));
+    }
+    if (elements.cards.superlikeButton) {
+        elements.cards.superlikeButton.addEventListener('click', () => handleAction('superlike'));
+    }
     
     // Загружаем первый профиль
-    await searchHandlers.loadNextProfile();
+    loadNextProfile();
+    
+    // Расширяем WebApp на весь экран
+    tg.expand();
 }
 
-// Запуск приложения
+// Запускаем приложение после загрузки DOM
 document.addEventListener('DOMContentLoaded', initApp);
 
 // View updates

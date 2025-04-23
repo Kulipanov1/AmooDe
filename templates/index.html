@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shams Dating</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,7 +13,13 @@
         <div id="cards-page" class="page active">
             <div class="card-stack">
                 <div class="profile-card">
-                    <!-- Карточки будут добавляться динамически -->
+                    <div class="photo-container">
+                        <img src="default-avatar.png" alt="Profile Photo">
+                        <div class="profile-info-overlay">
+                            <h3>Загрузка...</h3>
+                            <p>Ищем интересных людей поблизости</p>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="action-buttons">
