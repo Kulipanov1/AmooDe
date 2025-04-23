@@ -105,3 +105,68 @@ https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=<YOUR_SERVER_URL>/we
 - For the Telegram Mini App to work, you need to register your bot with @BotFather and enable the Web App feature.
 - The server requires HTTPS for production use with Telegram webhooks.
 - Make sure to replace placeholder values with your actual API keys and endpoints.
+
+# Dating Bot
+
+Telegram бот для знакомств с веб-интерфейсом.
+
+## Установка
+
+1. Клонируйте репозиторий:
+```bash
+git clone https://github.com/yourusername/dating-bot.git
+cd dating-bot
+```
+
+2. Установите Python зависимости:
+```bash
+pip install -r requirements.txt
+```
+
+3. Установите Node.js зависимости:
+```bash
+npm install
+```
+
+4. Создайте файл .env и добавьте необходимые переменные окружения:
+```
+TELEGRAM_BOT_TOKEN=your_bot_token
+DATABASE_URL=sqlite:///dating_bot.db
+FLASK_APP=server.py
+FLASK_ENV=development
+PORT=5000
+WEBAPP_URL=your_webapp_url
+```
+
+## Запуск
+
+1. Соберите веб-приложение:
+```bash
+npm run build
+```
+
+2. Запустите Flask сервер:
+```bash
+python server.py
+```
+
+3. В отдельном терминале запустите бота:
+```bash
+python datebot.py
+```
+
+## Деплой
+
+1. Создайте аккаунт на платформе для деплоя (например, Heroku)
+2. Настройте переменные окружения
+3. Запушьте код в репозиторий
+4. Следуйте инструкциям платформы для деплоя
+
+## Функционал
+
+- Регистрация профиля
+- Поиск пар
+- Лайки/дизлайки
+- Чат с мэтчами
+- Веб-интерфейс
+- Статистика

@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dating Bot Web App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <div class="container">
-        <div id="profile-section" class="hidden">
+        <div id="profile-section">
             <h2>Ваш профиль</h2>
             <div id="profile-info"></div>
             <button id="edit-profile">✏️ Редактировать</button>
@@ -29,11 +29,11 @@
             </div>
         </div>
         
-        <div id="matches-section" class="hidden">
+        <div id="matches-section">
             <h2>Ваши пары</h2>
             <div id="matches-list"></div>
         </div>
     </div>
-    <script src="app.js"></script>
+    <script src="/static/bundle.js"></script>
 </body>
 </html> 

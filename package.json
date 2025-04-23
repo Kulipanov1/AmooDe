@@ -1,58 +1,23 @@
 {
-  "name": "expo-app",
-  "main": "expo-router/entry",
+  "name": "dating-bot-webapp",
   "version": "1.0.0",
+  "description": "Web application for Dating Bot",
+  "main": "server.py",
   "scripts": {
-    "start": "expo start --tunnel",
-    "start-web": "expo start --web --tunnel",
-    "start-web-dev": "DEBUG=expo* expo start --web --tunnel",
-    "build": "npx expo export:web",
-    "preview": "npx serve web-build"
+    "start": "python server.py",
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --watch"
   },
   "dependencies": {
-    "@expo/vector-icons": "^14.0.2",
-    "@react-native-async-storage/async-storage": "1.23.1",
-    "@react-navigation/native": "^7.0.0",
-    "axios": "^1.8.4",
-    "babel-plugin-module-resolver": "^5.0.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "expo": "~52.0.36",
-    "expo-blur": "~14.0.1",
-    "expo-constants": "~17.0.7",
-    "expo-font": "~13.0.4",
-    "expo-haptics": "~14.0.0",
-    "expo-image": "~2.0.6",
-    "expo-image-picker": "^16.0.6",
-    "expo-linear-gradient": "^14.0.1",
-    "expo-linking": "~7.0.3",
-    "expo-location": "~18.0.7",
-    "expo-router": "~4.0.17",
-    "expo-splash-screen": "~0.29.22",
-    "expo-status-bar": "~2.0.0",
-    "expo-symbols": "~0.2.0",
-    "expo-system-ui": "~4.0.6",
-    "expo-web-browser": "~14.0.1",
-    "express": "^5.1.0",
-    "lucide-react-native": "^0.475.0",
-    "module-resolver": "^1.0.0",
-    "nativewind": "^4.1.23",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "react-native": "0.76.7",
-    "react-native-gesture-handler": "~2.20.2",
-    "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "~4.4.0",
-    "react-native-svg": "15.8.0",
-    "react-native-web": "~0.19.13",
-    "zustand": "^5.0.2"
+    "telegram-webapps": "^6.9.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.2",
-    "@expo/ngrok": "^4.1.0",
-    "@types/react": "~18.3.12",
-    "typescript": "~5.8.2",
-    "serve": "^14.2.1"
-  },
-  "private": true
+    "@babel/core": "^7.22.0",
+    "@babel/preset-env": "^7.22.0",
+    "babel-loader": "^9.1.2",
+    "css-loader": "^6.8.1",
+    "style-loader": "^3.3.3",
+    "webpack": "^5.85.0",
+    "webpack-cli": "^5.1.1"
+  }
 }

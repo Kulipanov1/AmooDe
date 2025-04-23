@@ -6,7 +6,10 @@ import os
 # Загружаем переменные окружения
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, 
+    static_folder='static',
+    template_folder='templates'
+)
 
 def get_db_connection():
     """Создаем подключение к базе данных"""
@@ -19,9 +22,9 @@ def get_db_connection():
 def index():
     return render_template('index.html')
 
-@app.route('/<path:path>')
-def serve_static(path):
-    return send_from_directory('public', path)
+@app.route('/static/<path:path>')
+def send_static(path):
+    return send_from_directory('static', path)
 
 # API endpoints
 @app.route('/api/profile/<int:user_id>', methods=['GET'])
